@@ -149,7 +149,7 @@
   </main>
   <div class="sticky-cta"><a class="btn gold affiliate-link" href="https://9bb23xpfeap70zboxx0fv3sv6l.hop.clickbank.net">Check Current Offer</a></div>
   <footer><div class="wrap footer-row"><div><strong>EVERYDAY FINDS</strong><br>Independent product information and affiliate offers.</div><div>© <span id="year"></span> Everyday Finds · <a href="#about">Back to top</a></div></div></footer>
-  <!-- Google tag: measures site traffic and affiliate-button clicks. This does NOT record a confirmed sale. -->
+  <!-- Google tag: AW-18483690321 - CORRIGIDO COM TID AUTOMATICO -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18483690321"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -157,23 +157,61 @@
     gtag('js', new Date());
     gtag('config', 'AW-18483690321');
 
-    const AFFILIATE_LINK = "https://9bb23xpfeap70zboxx0fv3sv6l.hop.clickbank.net";
-    document.querySelectorAll(".affiliate-link").forEach((link, index) => {
-      link.href = AFFILIATE_LINK;
-      link.target = "_blank";
-      link.rel = "sponsored nofollow noopener";
-      link.addEventListener("click", () => {
-        if (typeof gtag === "function") {
-          gtag('event', 'affiliate_click', {
-            event_category: 'affiliate',
-            event_label: 'phytomem_one',
-            link_url: AFFILIATE_LINK,
-            link_position: String(index + 1)
-          });
+    // CORREÇÃO: TID AUTOMÁTICO
+    // Pega o gclid do Google e coloca como TID no link da ClickBank
+    // Não apaga mais o link, só adiciona o TID
+    (function() {
+      function getParam(name) {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          return params.get(name);
+        } catch(e) { return null; }
+      }
+      var gclid = getParam('gclid');
+      var gbraid = getParam('gbraid');
+      var wbraid = getParam('wbraid');
+
+      if (!gclid) {
+        try {
+          var match = document.cookie.match(/_gcl_au=([^;]+)/);
+          if (match) { gclid = match[1]; }
+        } catch(e) {}
+      }
+
+      var AFFILIATE_LINK = "https://9bb23xpfeap70zboxx0fv3sv6l.hop.clickbank.net";
+
+      document.querySelectorAll(".affiliate-link").forEach(function(link, index) {
+        // Se for botão interno #offers, não mexe
+        if (link.getAttribute('href') && link.getAttribute('href').startsWith('#')) {
+          return;
         }
+        try {
+          var url = new URL(AFFILIATE_LINK);
+          if (gclid && !url.searchParams.get('tid')) {
+            url.searchParams.set('tid', gclid);
+          }
+          if (gclid) url.searchParams.set('gclid', gclid);
+          if (gbraid) url.searchParams.set('gbraid', gbraid);
+          if (wbraid) url.searchParams.set('wbraid', wbraid);
+          link.href = url.toString();
+        } catch(e) {
+          link.href = AFFILIATE_LINK;
+        }
+        link.target = "_blank";
+        link.rel = "sponsored nofollow noopener";
+        link.addEventListener("click", function() {
+          if (typeof gtag === "function") {
+            gtag('event', 'affiliate_click', {
+              event_category: 'affiliate',
+              event_label: 'phytomem_one',
+              link_url: link.href,
+              link_position: String(index + 1)
+            });
+          }
+        });
       });
-    });
-    document.getElementById("year").textContent = new Date().getFullYear();
+      document.getElementById("year").textContent = new Date().getFullYear();
+    })();
   </script>
 </body>
 </html>
